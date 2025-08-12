@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Story 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      }
+      .speaker-icon {
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+      }
+      .speaker-icon:hover {
+        transform: scale(1.1);
+      }
+      .speaker-icon.loading {
+        animation: pulse 1s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen p-4 sm:p-8 flex items-center justify-center transition-colors duration-300"
+  >
+    <div
+      class="max-w-4xl w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 transform hover:scale-[1.01] border-4 border-teal-400"
+    >
+      <div class="p-6 sm:p-8">
+        <h1
+          id="article-title"
+          class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8 text-indigo-700 dark:text-indigo-400"
+        ></h1>
+        <p
+          id="article-content"
+          class="text-base sm:text-lg text-justify leading-relaxed mb-6 sm:mb-8 bg-blue-50 dark:bg-gray-700 p-4 rounded-2xl shadow-inner text-gray-800 dark:text-gray-200"
+        ></p>
+        <div id="glossary-section" class="mt-8">
+          <h2
+            class="text-xl sm:text-2xl font-bold mb-4 text-center text-indigo-700 dark:text-indigo-400"
+          >
+            শব্দার্থ
+          </h2>
+          <div
+            id="glossary-container"
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
+          ></div>
+        </div>
+      </div>
+      <div
+        class="bg-gray-100 dark:bg-gray-700 text-center p-4 rounded-b-3xl mt-4"
+      >
+        <p class="text-gray-600 dark:text-gray-400 text-sm">Jesmin Juthi ❤️</p>
+      </div>
+    </div>
+    <script>
+      const storyData = {
+        title: "হলদে বক",
+        article: `হলদে বক নামের একটি পাখি আছে, যারা মূলত Water Hyacinth এর মধ্যে বসবাস করে। কচুরিপানার মধ্যে তারা Skulk হয়ে থাকে। সাধারণত Pastoral ও Balmy পরিবেশে তারা থাকতে পছন্দ করে। Seldom তাদের লোকালয়ে দেখা যায়। চলাচল ও খাদ্য সংগ্রহের ক্ষেত্রে তাদের Artifice চমৎকার। তারা Echo শব্দ তৈরি করে নিজেদের মধ্যে যোগাযোগ রক্ষা করে এবং ধূর্ততার সাথে মাছ শিকার করে। তবে হলদে বকের অস্তিত্ব আজ হুমকির মুখে পড়েছে, বিশেষ করে Clime পরিবর্তনের প্রভাবে কারণে এর জনসংখ্যা কমে যাচ্ছে। তাছাড়া Arbitrary ভাবে খাল, বিল, নলা ধ্বংস করার কারণেও হলদে বকের অস্তিত্ব আজ হুমকির মুখে।`,
+        glossary: [
+          {
+            word: "Water Hyacinth",
+            meaning: "কচুরিপানা",
+            color: "purple",
+            banglaWord: "ওয়াটার হায়াসিন্থ",
+          },
+          {
+            word: "Skulk",
+            meaning: "লুকিয়ে থাকা, গোপনে ঘোরাঘুরি করা",
+            color: "orange",
+            banglaWord: "স্কালক",
+          },
+          {
+            word: "Pastoral",
+            meaning: "গ্রাম্য, পল্লীজীবন-সম্পর্কিত",
+            color: "lime",
+            banglaWord: "পাস্টোরাল",
+          },
+          {
+            word: "Balmy",
+            meaning: "উষ্ণ ও মনোরম, হালকা গরম",
+            color: "pink",
+            banglaWord: "বামি",
+          },
+          {
+            word: "Seldom",
+            meaning: "কদাচিৎ",
+            color: "cyan",
+            banglaWord: "সেলডম",
+          },
+          {
+            word: "Artifice",
+            meaning: "ধূর্ততা, চাতুরী, চালাকি, দক্ষতা",
+            color: "teal",
+            banglaWord: "আর্টিফিস",
+          },
+          {
+            word: "Echo",
+            meaning: "প্রতিধ্বনিত হওয়া",
+            color: "yellow",
+            banglaWord: "একো",
+          },
+          {
+            word: "Clime",
+            meaning: "জলবায়ু",
+            color: "red",
+            banglaWord: "ক্লাইম",
+          },
+          {
+            word: "Arbitrary",
+            meaning: "নির্বিচারে, ইচ্ছামতো, মনগড়া",
+            color: "indigo",
+            banglaWord: "আর্বিট্রারি",
+          },
+        ],
+      };
+
+      let speechSynth = window.speechSynthesis;
+
+      async function playPronunciation(word, lang, button) {
+        if ("speechSynthesis" in window) {
+          if (speechSynth.speaking) {
+            speechSynth.cancel();
+          }
+
+          const utterance = new SpeechSynthesisUtterance(word);
+          utterance.lang = lang;
+
+          utterance.onstart = () => {
+            button.classList.add("loading");
+          };
+          utterance.onend = () => {
+            button.classList.remove("loading");
+          };
+          utterance.onerror = (event) => {
+            console.error("Speech synthesis error:", event.error);
+            button.classList.remove("loading");
+          };
+
+          speechSynth.speak(utterance);
+        } else {
+          console.warn("Your browser does not support the Web Speech API.");
+        }
+      }
+
+      function renderStory() {
+        const articleTitleEl = document.getElementById("article-title");
+        const articleContentEl = document.getElementById("article-content");
+        const glossaryContainerEl =
+          document.getElementById("glossary-container");
+
+        articleTitleEl.textContent = storyData.title;
+
+        let highlightedArticle = storyData.article;
+        storyData.glossary.forEach((item) => {
+          const wordWithHighlight = `<span class="font-semibold text-${item.color}-700 dark:text-${item.color}-300 hover:underline cursor-pointer">${item.word}</span>`;
+          highlightedArticle = highlightedArticle.replace(
+            new RegExp(item.word, "g"),
+            wordWithHighlight
+          );
+        });
+        articleContentEl.innerHTML = highlightedArticle;
+
+        let glossaryHtml = "";
+        storyData.glossary.forEach((item) => {
+          const wordWithBangla = item.banglaWord ? `(${item.banglaWord})` : "";
+          glossaryHtml += `
+                    <div class="flex flex-col p-4 bg-${item.color}-100 dark:bg-gray-700 rounded-lg shadow-md transition-all duration-300 hover:bg-${item.color}-200 dark:hover:bg-gray-600 transform hover:-translate-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-lg sm:text-xl text-${item.color}-700 dark:text-${item.color}-300">${item.word} ${wordWithBangla}</span>
+                            <div class="flex space-x-2">
+                                <!-- US Pronunciation Icon -->
+                                <div class="flex items-center">
+                                    <svg data-pronounce-text="${item.word}" data-pronounce-lang="en-US" class="speaker-icon w-5 h-5 text-${item.color}-700 dark:text-${item.color}-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14 3.23a2.5 2.5 0 0 1 0 17.54v-2.1a9.23 9.23 0 0 0 0-13.34V3.23ZM16.5 7.18a5.95 5.95 0 0 1 0 9.64v-1.78a3.46 3.46 0 0 0 0-6.08V7.18ZM12 4a.97.97 0 0 0-1-.87L7.43 5.4a1 1 0 0 1-.62.24H3.5a1.5 1.5 0 0 0-1.5 1.5v9.72a1.5 1.5 0 0 0 1.5 1.5h3.31a1 1 0 0 1 .62.24l3.58 2.34A.97.97 0 0 0 12 20V4Z"/>
+                                    </svg>
+                                    <span class="ml-1 text-xs text-${item.color}-700 dark:text-${item.color}-300">(US)</span>
+                                </div>
+                                <!-- UK Pronunciation Icon -->
+                                <div class="flex items-center">
+                                    <svg data-pronounce-text="${item.word}" data-pronounce-lang="en-GB" class="speaker-icon w-5 h-5 text-${item.color}-700 dark:text-${item.color}-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14 3.23a2.5 2.5 0 0 1 0 17.54v-2.1a9.23 9.23 0 0 0 0-13.34V3.23ZM16.5 7.18a5.95 5.95 0 0 1 0 9.64v-1.78a3.46 3.46 0 0 0 0-6.08V7.18ZM12 4a.97.97 0 0 0-1-.87L7.43 5.4a1 1 0 0 1-.62.24H3.5a1.5 1.5 0 0 0-1.5 1.5v9.72a1.5 1.5 0 0 0 1.5 1.5h3.31a1 1 0 0 1 .62.24l3.58 2.34A.97.97 0 0 0 12 20V4Z"/>
+                                    </svg>
+                                    <span class="ml-1 text-xs text-${item.color}-700 dark:text-${item.color}-300">(UK)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-sm sm:text-base mt-1 text-gray-700 dark:text-gray-300">${item.meaning}</span>
+                    </div>
+                `;
+        });
+        glossaryContainerEl.innerHTML = glossaryHtml;
+
+        document.querySelectorAll(".speaker-icon").forEach((icon) => {
+          icon.addEventListener("click", (event) => {
+            const pronounceText = event.currentTarget.dataset.pronounceText;
+            const pronounceLang = event.currentTarget.dataset.pronounceLang;
+            playPronunciation(
+              pronounceText,
+              pronounceLang,
+              event.currentTarget
+            );
+          });
+        });
+      }
+
+      renderStory();
+    </script>
+  </body>
+</html>
