@@ -12,7 +12,7 @@
     <style>
       body {
         font-family: "Inter", sans-serif;
-        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        background: linear-gradient(135deg, #0a084b, #2b084b);
       }
       .speaker-icon {
         cursor: pointer;
@@ -35,13 +35,71 @@
           transform: scale(1);
         }
       }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      .story-link {
+        text-decoration: none;
+      }
+      .story-link:hover {
+        text-decoration: underline;
+      }
+
+      .highlighted {
+        animation: highlight-glow 1.5s ease-in-out forwards;
+      }
+      @keyframes highlight-glow {
+        0% {
+          box-shadow: 0 0 0 0px rgba(20, 184, 166, 0.4);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow: 0 0 20px 8px rgba(20, 184, 166, 0.6);
+          transform: scale(1.02);
+        }
+        100% {
+          box-shadow: 0 0 0 0px rgba(20, 184, 166, 0);
+          transform: scale(1);
+        }
+      }
+
+      #scroll-to-top-btn {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 99;
+        cursor: pointer;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      body::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      body::-webkit-scrollbar-track {
+        background: #0a084b;
+        border-radius: 10px;
+      }
+
+      body::-webkit-scrollbar-thumb {
+        background-color: #14b8a6;
+        border-radius: 10px;
+        border: 2px solid #0a084b;
+      }
+
+      body::-webkit-scrollbar-thumb:hover {
+        background-color: #0d9488;
+      }
     </style>
   </head>
   <body
     class="min-h-screen p-4 sm:p-8 flex items-center justify-center transition-colors duration-300"
   >
     <div
-      class="max-w-4xl w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 transform hover:scale-[1.01] border-4 border-teal-400"
+      class="max-w-4xl w-full bg-white dark:bg-[#17153B] rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 transform border-4 border-teal-400"
     >
       <div class="p-6 sm:p-8">
         <h1
@@ -70,6 +128,28 @@
         <p class="text-gray-600 dark:text-gray-400 text-sm">Jesmin Juthi ❤️</p>
       </div>
     </div>
+
+    <button
+      id="scroll-to-top-btn"
+      class="p-3 bg-teal-500 text-white rounded-full shadow-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
+      aria-label="Scroll to top"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 10l7-7m0 0l7 7m-7-7v18"
+        />
+      </svg>
+    </button>
+
     <script>
       const storyData = {
         title: "Story 1",
@@ -79,11 +159,11 @@
             word: "Water Hyacinth",
             meaning: "কচুরিপানা",
             color: "purple",
-            banglaWord: "ওয়াটার হায়াসিন্থ",
+            banglaWord: "ওয়াটার হায়াসিন্থ",
           },
           {
             word: "Skulk",
-            meaning: "লুকিয়ে থাকা, গোপনে ঘোরাঘুরি করা",
+            meaning: "লুকিয়ে থাকা, গোপনে ঘোরাঘুরি করা",
             color: "orange",
             banglaWord: "স্কালক",
           },
@@ -113,7 +193,7 @@
           },
           {
             word: "Echo",
-            meaning: "প্রতিধ্বনিত হওয়া",
+            meaning: "প্রতিধ্বনিত হওয়া",
             color: "yellow",
             banglaWord: "একো",
           },
@@ -125,7 +205,7 @@
           },
           {
             word: "Arbitrary",
-            meaning: "নির্বিচারে, ইচ্ছামতো, মনগড়া",
+            meaning: "নির্বিচারে, ইচ্ছামতো, মনগড়া",
             color: "indigo",
             banglaWord: "আর্বিট্রারি",
           },
@@ -133,7 +213,6 @@
       };
 
       let speechSynth = window.speechSynthesis;
-
       async function playPronunciation(word, lang, button) {
         if ("speechSynthesis" in window) {
           if (speechSynth.speaking) {
@@ -160,6 +239,21 @@
         }
       }
 
+      function createId(word) {
+        return "glossary-" + word.toLowerCase().replace(/\s/g, "-");
+      }
+
+      function highlightGlossaryItem(id) {
+        document.querySelectorAll(".highlighted").forEach((el) => {
+          el.classList.remove("highlighted");
+        });
+
+        const item = document.getElementById(id);
+        if (item) {
+          item.classList.add("highlighted");
+        }
+      }
+
       function renderStory() {
         const articleTitleEl = document.getElementById("article-title");
         const articleContentEl = document.getElementById("article-content");
@@ -170,43 +264,52 @@
 
         let highlightedArticle = storyData.article;
         storyData.glossary.forEach((item) => {
-          const wordWithHighlight = `<span class="font-semibold text-${item.color}-700 dark:text-${item.color}-300 hover:underline cursor-pointer">${item.word}</span>`;
+          const id = createId(item.word);
+          const wordWithLink = `<a href="#${id}" class="story-link font-semibold text-${item.color}-700 dark:text-${item.color}-300 hover:underline cursor-pointer" data-glossary-id="${id}">${item.word}</a>`;
           highlightedArticle = highlightedArticle.replace(
             new RegExp(item.word, "g"),
-            wordWithHighlight
+            wordWithLink
           );
         });
         articleContentEl.innerHTML = highlightedArticle;
 
         let glossaryHtml = "";
         storyData.glossary.forEach((item) => {
+          const id = createId(item.word);
           const wordWithBangla = item.banglaWord ? `(${item.banglaWord})` : "";
           glossaryHtml += `
-                    <div class="flex flex-col p-4 bg-${item.color}-100 dark:bg-gray-700 rounded-lg shadow-md transition-all duration-300 hover:bg-${item.color}-200 dark:hover:bg-gray-600 transform hover:-translate-y-1">
-                        <div class="flex items-center justify-between">
-                            <span class="font-semibold text-lg sm:text-xl text-${item.color}-700 dark:text-${item.color}-300">${item.word} ${wordWithBangla}</span>
-                            <div class="flex space-x-2">
-                                <!-- US Pronunciation Icon -->
-                                <div class="flex items-center">
-                                    <svg data-pronounce-text="${item.word}" data-pronounce-lang="en-US" class="speaker-icon w-5 h-5 text-${item.color}-700 dark:text-${item.color}-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M14 3.23a2.5 2.5 0 0 1 0 17.54v-2.1a9.23 9.23 0 0 0 0-13.34V3.23ZM16.5 7.18a5.95 5.95 0 0 1 0 9.64v-1.78a3.46 3.46 0 0 0 0-6.08V7.18ZM12 4a.97.97 0 0 0-1-.87L7.43 5.4a1 1 0 0 1-.62.24H3.5a1.5 1.5 0 0 0-1.5 1.5v9.72a1.5 1.5 0 0 0 1.5 1.5h3.31a1 1 0 0 1 .62.24l3.58 2.34A.97.97 0 0 0 12 20V4Z"/>
-                                    </svg>
-                                    <span class="ml-1 text-xs text-${item.color}-700 dark:text-${item.color}-300">(US)</span>
-                                </div>
-                                <!-- UK Pronunciation Icon -->
-                                <div class="flex items-center">
-                                    <svg data-pronounce-text="${item.word}" data-pronounce-lang="en-GB" class="speaker-icon w-5 h-5 text-${item.color}-700 dark:text-${item.color}-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M14 3.23a2.5 2.5 0 0 1 0 17.54v-2.1a9.23 9.23 0 0 0 0-13.34V3.23ZM16.5 7.18a5.95 5.95 0 0 1 0 9.64v-1.78a3.46 3.46 0 0 0 0-6.08V7.18ZM12 4a.97.97 0 0 0-1-.87L7.43 5.4a1 1 0 0 1-.62.24H3.5a1.5 1.5 0 0 0-1.5 1.5v9.72a1.5 1.5 0 0 0 1.5 1.5h3.31a1 1 0 0 1 .62.24l3.58 2.34A.97.97 0 0 0 12 20V4Z"/>
-                                    </svg>
-                                    <span class="ml-1 text-xs text-${item.color}-700 dark:text-${item.color}-300">(UK)</span>
-                                </div>
-                            </div>
-                        </div>
-                        <span class="text-sm sm:text-base mt-1 text-gray-700 dark:text-gray-300">${item.meaning}</span>
-                    </div>
-                `;
+            <div id="${id}" class="flex flex-col p-4 bg-${item.color}-100 dark:bg-gray-700 rounded-lg shadow-md transition-all duration-300 hover:bg-${item.color}-200 dark:hover:bg-gray-600 transform hover:-translate-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-lg sm:text-xl text-${item.color}-700 dark:text-${item.color}-300">${item.word} ${wordWithBangla}</span>
+                <div class="flex space-x-2">
+                  <div class="flex items-center">
+                    <svg data-pronounce-text="${item.word}" data-pronounce-lang="en-US" class="speaker-icon w-5 h-5 text-${item.color}-700 dark:text-${item.color}-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14 3.23a2.5 2.5 0 0 1 0 17.54v-2.1a9.23 9.23 0 0 0 0-13.34V3.23ZM16.5 7.18a5.95 5.95 0 0 1 0 9.64v-1.78a3.46 3.46 0 0 0 0-6.08V7.18ZM12 4a.97.97 0 0 0-1-.87L7.43 5.4a1 1 0 0 1-.62.24H3.5a1.5 1.5 0 0 0-1.5 1.5v9.72a1.5 1.5 0 0 0 1.5 1.5h3.31a1 1 0 0 1 .62.24l3.58 2.34A.97.97 0 0 0 12 20V4Z"/>
+                    </svg>
+                    <span class="ml-1 text-xs text-${item.color}-700 dark:text-${item.color}-300">(US)</span>
+                  </div>
+                  <div class="flex items-center">
+                    <svg data-pronounce-text="${item.word}" data-pronounce-lang="en-GB" class="speaker-icon w-5 h-5 text-${item.color}-700 dark:text-${item.color}-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14 3.23a2.5 2.5 0 0 1 0 17.54v-2.1a9.23 9.23 0 0 0 0-13.34V3.23ZM16.5 7.18a5.95 5.95 0 0 1 0 9.64v-1.78a3.46 3.46 0 0 0 0-6.08V7.18ZM12 4a.97.97 0 0 0-1-.87L7.43 5.4a1 1 0 0 1-.62.24H3.5a1.5 1.5 0 0 0-1.5 1.5v9.72a1.5 1.5 0 0 0 1.5 1.5h3.31a1 1 0 0 1 .62.24l3.58 2.34A.97.97 0 0 0 12 20V4Z"/>
+                    </svg>
+                    <span class="ml-1 text-xs text-${item.color}-700 dark:text-${item.color}-300">(UK)</span>
+                  </div>
+                </div>
+              </div>
+              <span class="text-sm sm:text-base mt-1 text-gray-700 dark:text-gray-300">${item.meaning}</span>
+            </div>
+          `;
         });
         glossaryContainerEl.innerHTML = glossaryHtml;
+
+        document.querySelectorAll(".story-link").forEach((link) => {
+          link.addEventListener("click", (event) => {
+            const id = event.target.dataset.glossaryId;
+            if (id) {
+              highlightGlossaryItem(id);
+            }
+          });
+        });
 
         document.querySelectorAll(".speaker-icon").forEach((icon) => {
           icon.addEventListener("click", (event) => {
@@ -217,6 +320,32 @@
               pronounceLang,
               event.currentTarget
             );
+          });
+        });
+
+        const scrollToTopBtn = document.getElementById("scroll-to-top-btn");
+
+        window.onscroll = function () {
+          if (
+            document.body.scrollTop > 200 ||
+            document.documentElement.scrollTop > 200
+          ) {
+            scrollToTopBtn.style.display = "block";
+            scrollToTopBtn.style.opacity = 1;
+          } else {
+            scrollToTopBtn.style.opacity = 0;
+            setTimeout(() => {
+              if (scrollToTopBtn.style.opacity === "0") {
+                scrollToTopBtn.style.display = "none";
+              }
+            }, 300);
+          }
+        };
+
+        scrollToTopBtn.addEventListener("click", () => {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
           });
         });
       }
